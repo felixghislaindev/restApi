@@ -20,6 +20,11 @@ const CourseSchema = new Schema({
 
 // defining the course model
 const Course = mongoose.model("Course", CourseSchema);
+// defineing the user model
+const User = mongoose.model("User", UserSchema);
 
 // exporting the course model
-module.exports = Course;
+module.exports = {
+  courseShema: Course,
+  UserSchema: User
+};
