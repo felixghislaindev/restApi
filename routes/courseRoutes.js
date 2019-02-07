@@ -22,7 +22,7 @@ const userAuthentication = async (req, res, next) => {
     // checking is user exist in our user data stored
 
     const user = await User.find(
-      { firstName: userCredential.name },
+      { emailAdress: userCredential.name },
       (err, user) => {
         if (err) return next(err);
         req.userFound = user[0];
@@ -30,6 +30,7 @@ const userAuthentication = async (req, res, next) => {
     );
 
     const foundUser = req.userFound;
+
     // check user password if user is foun in our database
     if (foundUser) {
       const authenticatedUser = bycrypt.compareSync(
@@ -92,6 +93,7 @@ router.post(
       .withMessage('Please provide a value for "materiallNeeded"')
   ],
   (req, res) => {
+    console.log(req.currentUser);
     // error if data falis validation
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -114,7 +116,7 @@ router.post(
       (err, user) => {
         if (err) return next(err);
         res.location("/api/courses/" + user.id);
-        res.send(201);
+        res.sendStatus(201);
       }
     );
   }
@@ -151,12 +153,17 @@ router.put(
   ],
   (req, res) => {
     // finding validating and updating a specific course
-    Course.findOneAndUpdate(req.params.id, req.body, (err, course) => {
-      if (err) next(err);
-      res.json({
-        message: `will update the course with the id ${req.params.id}`,
-        update: course
-      });
+    Course.findById(req.params.id, (err, course) => {
+      // will check if the course belong to the user by compairing the user id to the logged in id
+      console.log(course.user.toString(), req.currentUser.id);
+      if (course.user.toString() === req.currentUser.id) {
+        Course.findOneAndUpdate(req.params.id, req.body, (err, course) => {
+          if (err) next(err);
+          res.sendStatus(204);
+        });
+      } else {
+        res.sendStatus(403);
+      }
     });
   }
 );
@@ -164,10 +171,17 @@ router.put(
 // delete a specific course
 router.delete("/:id", userAuthentication, (req, res) => {
   // finding and delete specific course
-  Course.findByIdAndRemove(req.params.id, err => {
-    res.json({
-      message: `will delete the course with the id ${req.params.id}`
-    });
+  // finding validating and updating a specific course
+  Course.findById(req.params.id, (err, course) => {
+    // will check if the course belong to the user by compairing the user id to the logged in id
+    if (course.user.toString() === req.currentUser.id) {
+      Course.findOneAndDelete(req.params.id, err => {
+        if (err) next(err);
+        res.sendStatus(204);
+      });
+    } else {
+      res.sendStatus(403);
+    }
   });
 });
 
