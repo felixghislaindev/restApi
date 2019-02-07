@@ -61,15 +61,15 @@ const userAuthentication = async (req, res, next) => {
 };
 
 // returning list of courses in our database
-router.get("/", (req, res) => {
+router.get("/", (req, res, next) => {
   // retreiving all courses from the database
-
+  // field selection applied
   Course.find()
-    .populate("user")
-    .exec()
-    .then(data => {
+    .populate("user ", "firstName lastName")
+    .exec((err, course) => {
+      if (err) res.sendStatus(404);
       res.json({
-        result: data
+        message: course
       });
     });
 });

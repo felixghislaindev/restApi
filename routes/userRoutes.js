@@ -82,9 +82,12 @@ router.post(
     check("emailAdress")
       .exists({ checkNull: true, checkFalsy: true })
       .isEmail()
-      .withMessage(
-        'Please provide a value for "email" example:"jhon@yahoo.com'
-      ),
+      .withMessage('Please provide a value for "email" example:"jhon@yahoo.com')
+      .custom(async email => {
+        const foundEmail = await User.find({ emailAdress: email });
+        return foundEmail.length == 0;
+      })
+      .withMessage("this email already exist already exists"),
     check("password")
       .isLength({ min: 5 })
       .withMessage('Please provide a value for "password"')
