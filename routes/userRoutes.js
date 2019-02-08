@@ -18,7 +18,7 @@ const userAuthentication = async (req, res, next) => {
     // checking is user exist in our user data stored
 
     const user = await User.find(
-      { emailAdress: userCredential.name },
+      { emailAddress: userCredential.name },
       (err, user) => {
         if (err) return next(err);
         req.userFound = user[0];
@@ -43,13 +43,14 @@ const userAuthentication = async (req, res, next) => {
         } wrong password entered`;
       }
     } else {
-      message = `Authentication failure  ${foundUser.username} not found`;
+      message = `Authentication failure  ${userCredential.name} not found`;
     }
   } else {
     message = "Auth header not found";
   }
   if (message) {
-    res.status(401).json({ message: "Access Denied" });
+    res.json({ message: message });
+    res.sendStatus(401);
   } else {
     //   calling next if success
     next();
@@ -79,7 +80,7 @@ router.post(
     check("lastName")
       .exists({ checkNull: true, checkFalsy: true })
       .withMessage('Please provide a value for "lastName"'),
-    check("emailAdress")
+    check("emailAddress")
       .exists({ checkNull: true, checkFalsy: true })
       .isEmail()
       .withMessage('Please provide a value for "email" example:"jhon@yahoo.com')
