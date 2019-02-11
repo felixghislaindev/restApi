@@ -49,7 +49,6 @@ const userAuthentication = async (req, res, next) => {
     message = "Auth header not found";
   }
   if (message) {
-    res.json({ message: message });
     res.sendStatus(401);
   } else {
     //   calling next if success
@@ -64,8 +63,7 @@ router.get("/", userAuthentication, (req, res) => {
   const user = req.currentUser;
 
   res.json({
-    id: user.id,
-    name: user.firstName
+    current: user
   });
 });
 
@@ -85,7 +83,8 @@ router.post(
       .isEmail()
       .withMessage('Please provide a value for "email" example:"jhon@yahoo.com')
       .custom(async email => {
-        const foundEmail = await User.find({ emailAdress: email });
+        console.log(email);
+        const foundEmail = await User.find({ emailAddress: email });
         return foundEmail.length == 0;
       })
       .withMessage("this email already exist already exists"),
@@ -93,9 +92,9 @@ router.post(
       .isLength({ min: 5 })
       .withMessage('Please provide a value for "password"')
   ],
-  (req, res) => {
+  (req, res, next) => {
     // error if data falis validation
-    console.log(req.currentUser);
+
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       // Use the Array `map()` method to get a list of error messages.
@@ -113,7 +112,7 @@ router.post(
     User.create(req.body, (err, user) => {
       if (err) return next(err);
       res.location("/api/courses/" + user.id);
-      res.send(201);
+      res.sendStatus(201);
     });
   }
 );

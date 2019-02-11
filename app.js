@@ -8,7 +8,7 @@ const userRoute = require("./routes/userRoutes");
 const courseRoute = require("./routes/courseRoutes");
 
 //  connecting to mongodb database sjstd-restapi
-mongoose.connect("mongodb://localhost/sjstd-restapi");
+mongoose.connect("mongodb://localhost/fsjstd-restapi");
 
 // creating mongoose connection
 const db = mongoose.connection;
@@ -18,7 +18,7 @@ db.on("error", console.error.bind(console, "connection error:"));
 
 // checking if connectiion to [sjstd-restapi] was sucessful
 db.once("open", () => {
-  console.log("connection to sjstd-restapi database was sucessful");
+  console.log("connection to fsjstd-restapi database was sucessful");
 });
 // variable to enable global error logging
 const enableGlobalErrorLogging =

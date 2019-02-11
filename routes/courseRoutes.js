@@ -2,6 +2,7 @@
 const express = require("express");
 const { check, validationResult } = require("express-validator/check");
 const bycrypt = require("bcryptjs");
+const validator = require("validator");
 const auth = require("basic-auth");
 const User = require("../model").UserSchema;
 
@@ -26,7 +27,6 @@ const userAuthentication = async (req, res, next) => {
       (err, user) => {
         if (err) return next(err);
         req.userFound = user[0];
-        console.log(userCredential.name);
       }
     );
 
@@ -71,7 +71,7 @@ router.get("/", (req, res, next) => {
     .exec((err, course) => {
       if (err) res.sendStatus(404);
       res.json({
-        message: course
+        Courses: course
       });
     });
 });
@@ -86,16 +86,9 @@ router.post(
       .withMessage('Please provide a value for "title"'),
     check("description")
       .exists({ checkNull: true, checkFalsy: true })
-      .withMessage('Please provide a value for "description"'),
-    check("estimatedTime")
-      .exists({ checkNull: true, checkFalsy: true })
-      .withMessage('Please provide a value for "estimatedTime"'),
-    check("materialsNeeded")
-      .exists({ checkNull: true, checkFalsy: true })
-      .withMessage('Please provide a value for "materiallNeeded"')
+      .withMessage('Please provide a value for "description"')
   ],
   (req, res) => {
-    console.log(req.currentUser);
     // error if data falis validation
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -130,34 +123,20 @@ router.get("/:id", (req, res) => {
     .exec()
     .then(data => {
       res.json({
-        result: data
+        Courses: data
       });
     });
 });
 
 // update a specific course
-router.put(
-  "/:id",
-  userAuthentication,
-  [
-    check("title")
-      .exists({ checkNull: true, checkFalsy: true })
-      .withMessage('Please provide a value for "title"'),
-    check("description")
-      .exists({ checkNull: true, checkFalsy: true })
-      .withMessage('Please provide a value for "description"'),
-    check("estimatedTime")
-      .exists({ checkNull: true, checkFalsy: true })
-      .withMessage('Please provide a value for "estimatedTime"'),
-    check("materialsNeeded")
-      .exists({ checkNull: true, checkFalsy: true })
-      .withMessage('Please provide a value for "materiallNeeded"')
-  ],
-  (req, res) => {
+router.put("/:id", userAuthentication, (req, res, next) => {
+  // add to write custom validation has validation check was being skipped
+  const { title, description } = req.body;
+  if (title !== "" && description !== "") {
     // finding validating and updating a specific course
     Course.findById(req.params.id, (err, course) => {
+      if (err) next(err);
       // will check if the course belong to the user by compairing the user id to the logged in id
-      console.log(course.user.toString(), req.currentUser.id);
       if (course.user.toString() === req.currentUser.id) {
         Course.findOneAndUpdate(req.params.id, req.body, (err, course) => {
           if (err) next(err);
@@ -167,8 +146,12 @@ router.put(
         res.sendStatus(403);
       }
     });
+  } else {
+    res
+      .status(400)
+      .send({ error: "title or description should not be left empty" });
   }
-);
+});
 
 // delete a specific course
 router.delete("/:id", userAuthentication, (req, res) => {
