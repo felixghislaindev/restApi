@@ -146,10 +146,14 @@ router.put("/:id", userAuthentication, (req, res, next) => {
         res.sendStatus(403);
       }
     });
+  } else if (title === "") {
+    res.status(400).send({ error: "title should not be left empty" });
+  } else if (description === "") {
+    res.status(400).send({ error: "description should not be left empty" });
   } else {
     res
       .status(400)
-      .send({ error: "title or description should not be left empty" });
+      .send({ error: " title and description should not be left empty" });
   }
 });
 
